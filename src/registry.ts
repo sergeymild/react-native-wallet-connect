@@ -42,7 +42,13 @@ export function formatMobileRegistry(registry: EntryModel[]): WalletModel[] {
 }
 
 let wallets: WalletModel[] = [];
-export async function fetchWallets() {
+export async function fetchWallets(): Promise<
+  | {
+      type: 'success';
+      data: WalletModel[];
+    }
+  | { type: 'error'; data: Error }
+> {
   try {
     if (wallets.length > 0) return { type: 'success', data: wallets };
     const response = await fetch(getWalletRegistryUrl());

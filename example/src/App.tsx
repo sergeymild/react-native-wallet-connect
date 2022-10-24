@@ -13,9 +13,9 @@ import {
   ChooseWalletTypeModalRef,
   fetchWallets,
   walletConnect,
+  WalletModel,
 } from 'react-native-wallet-connect';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import type { WalletModel } from '../../src/registry';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {

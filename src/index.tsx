@@ -1,6 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 
-export { fetchWallets } from './registry';
+export { fetchWallets, WalletModel } from './registry';
 export {
   ChooseWalletTypeModal,
   ChooseWalletTypeModalRef,
