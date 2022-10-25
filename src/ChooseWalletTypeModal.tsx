@@ -86,17 +86,6 @@ export const ChooseWalletTypeModal = forwardRef<
       backgroundComponent={null}
       onDismiss={() => setPresent(false)}
     >
-      {/*<SimpleBottomSheetHeader*/}
-      {/*  isFullScreen={false}*/}
-      {/*  title={*/}
-      {/*    <View style={{ flex: 1 }}>*/}
-      {/*      <AppIcon*/}
-      {/*        type={'icWalletConnectTitle'}*/}
-      {/*        style={{ alignSelf: 'center' }}*/}
-      {/*      />*/}
-      {/*    </View>*/}
-      {/*  }*/}
-      {/*/>*/}
       <View style={styles.container}>
         <View
           style={{

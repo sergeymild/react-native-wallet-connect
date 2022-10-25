@@ -16,6 +16,7 @@ interface EntryModel {
 }
 
 export interface WalletModel {
+  id: string;
   name?: string;
   shortName?: string;
   color?: string;
@@ -26,6 +27,7 @@ export interface WalletModel {
 
 function formatMobileRegistryEntry(entry: EntryModel): WalletModel {
   return {
+    id: entry.id,
     name: entry.name || '',
     shortName: entry.metadata.shortName || '',
     color: entry.metadata.colors.primary || '',
