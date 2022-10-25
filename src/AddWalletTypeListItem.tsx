@@ -5,6 +5,7 @@ import type { WalletModel } from './registry';
 interface Props {
   readonly item: WalletModel;
   readonly onPress: () => void;
+  readonly titleColor: string;
 }
 
 export const AddWalletTypeListItem: React.FC<Props> = memo((props) => {
@@ -20,7 +21,7 @@ export const AddWalletTypeListItem: React.FC<Props> = memo((props) => {
         children={props.item.name}
         numberOfLines={1}
         ellipsizeMode={'middle'}
-        style={styles.title}
+        style={[styles.title, { color: props.titleColor }]}
       />
     </TouchableOpacity>
   );

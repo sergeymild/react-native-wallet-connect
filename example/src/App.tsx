@@ -55,6 +55,10 @@ export default function App() {
 
         <ChooseWalletTypeModal
           ref={ref}
+          backgroundColor={'white'}
+          titleColor={'black'}
+          height={400}
+          backdropOpacity={0.5}
           supportedWallets={result}
           onAddWalletPress={connect}
         />

@@ -19,6 +19,10 @@ import type { WalletModel } from './registry';
 interface Props {
   readonly onAddWalletPress: (item: WalletModel) => void;
   readonly supportedWallets: WalletModel[];
+  readonly backgroundColor: string;
+  readonly titleColor: string;
+  readonly height: number;
+  readonly backdropOpacity?: number;
 }
 
 export interface ChooseWalletTypeModalRef {
@@ -55,6 +59,7 @@ export const ChooseWalletTypeModal = forwardRef<
         //opacity={props.overlayOpacity}
         appearsOnIndex={0}
         disappearsOnIndex={-1}
+        opacity={props.backdropOpacity}
       />
     ),
     []
@@ -96,8 +101,8 @@ export const ChooseWalletTypeModal = forwardRef<
         <View
           style={{
             width: width + 16,
-            height: 300,
-            backgroundColor: 'white',
+            minHeight: props.height,
+            backgroundColor: props.backgroundColor,
             borderRadius: 8,
           }}
         >
@@ -112,6 +117,7 @@ export const ChooseWalletTypeModal = forwardRef<
             }}
             renderItem={(info: ListRenderItemInfo<WalletModel>) => (
               <AddWalletTypeListItem
+                titleColor={props.titleColor}
                 item={info.item}
                 onPress={() => {
                   sheetRef.current?.dismiss();
