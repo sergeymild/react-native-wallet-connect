@@ -36,13 +36,13 @@ interface SignParamsModel {
   readonly bridge: string;
   readonly message: string;
   readonly address: string;
-  readonly wallet: string;
+  readonly wallet?: string;
 }
 
 export const walletConnect = {
-  signMessage(params: SignParamsModel) {
+  personalSign(params: SignParamsModel) {
     return new Promise((resolve) => {
-      WalletConnect.signMessage(params, resolve);
+      WalletConnect.personalSign(params, resolve);
     });
   },
 
@@ -56,7 +56,7 @@ export const walletConnect = {
     });
   },
 
-  close() {
-    WalletConnect.close();
+  disconnect() {
+    WalletConnect.disconnect();
   },
 };

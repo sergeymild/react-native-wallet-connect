@@ -16,15 +16,32 @@ class WalletConnectModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun connect(params: ReadableMap, callback: Callback) {
-    Handler(Looper.getMainLooper()).post(Runnable {
+  fun disconnect() {
+    AppWalletConnect.disconnect()
+  }
+
+  @ReactMethod
+  fun personalSign(params: ReadableMap, callback: Callback) {
+    Handler(Looper.getMainLooper()).postDelayed({
       val activity = currentActivity
       if (activity == null) {
         callback.invoke(Arguments.createArray())
-        return@Runnable
+        return@postDelayed
+      }
+      AppWalletConnect.personalSign(activity, params, callback)
+    }, 1000)
+  }
+
+  @ReactMethod
+  fun connect(params: ReadableMap, callback: Callback) {
+    currentActivity?.runOnUiThread {
+      val activity = currentActivity
+      if (activity == null) {
+        callback.invoke(Arguments.createArray())
+        return@runOnUiThread
       }
       AppWalletConnect.connect(activity, params, callback)
-    })
+    }
   }
 
 }

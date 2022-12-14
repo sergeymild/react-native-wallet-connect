@@ -4,8 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.ReadableMap
@@ -49,6 +47,7 @@ class AppWalletConnect : Session.Callback {
 
   fun resetSession(params: ReadableMap) {
     nullOnThrow { session }?.clearCallbacks()
+
     val key = ByteArray(32).also { Random().nextBytes(it) }.toNoPrefixHexString()
     config =
       Session.FullyQualifiedConfig(UUID.randomUUID().toString(), params.getString("bridge")!!, key)
@@ -67,17 +66,38 @@ class AppWalletConnect : Session.Callback {
     session?.offer()
   }
 
-  override fun onMethodCall(call: Session.MethodCall) {}
+  override fun onMethodCall(call: Session.MethodCall) {
+    when(call) {
+      is Session.MethodCall.SessionRequest -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.SessionRequest")
+      }
+      is Session.MethodCall.SessionUpdate -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.SessionUpdate")
+      }
+      is Session.MethodCall.SendTransaction -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.SendTransaction")
+      }
+      is Session.MethodCall.SignMessage -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.SignMessage")
+      }
+      is Session.MethodCall.Custom -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.Custom")
+      }
+      is Session.MethodCall.Response -> {
+        println("AppWalletConnect.methodCall.Session.MethodCall.Response")
+      }
+    }
+  }
 
   override fun onStatus(status: Session.Status) {
-    println("------- onStatus $status")
+    println("AppWalletConnect.onStatus $status")
     when (status) {
       Session.Status.Approved -> sessionApproved()
       Session.Status.Closed -> sessionClosed()
       Session.Status.Connected -> {}
       Session.Status.Disconnected,
       is Session.Status.Error -> {
-        println("------- onStatus.close")
+        println("AppWalletConnect.onStatus.close")
         resolvePromise?.get()?.invoke(Arguments.createMap().also {
           it.putString("type", "success")
           it.putArray("addresses", Arguments.createArray())
@@ -88,8 +108,8 @@ class AppWalletConnect : Session.Callback {
   }
 
   private fun sessionApproved() {
-    println("------- sessionApproved")
-    val strings = instance.session!!.approvedAccounts()
+    println("AppWalletConnect.sessionApproved")
+    val strings = instance.session?.approvedAccounts()
     if (strings != null) {
       val createArray = Arguments.createArray();
       for (string in strings) createArray.pushString(string)
@@ -102,7 +122,7 @@ class AppWalletConnect : Session.Callback {
   }
 
   private fun sessionClosed() {
-    println("------- sessionClosed")
+    println("AppWalletConnect.sessionClosed")
     resolvePromise?.get()?.invoke(Arguments.createMap().also {
       it.putString("type", "success")
       it.putArray("addresses", Arguments.createArray())
@@ -133,34 +153,77 @@ class AppWalletConnect : Session.Callback {
     @JvmField
     var instance = AppWalletConnect()
 
+    fun disconnect() {
+      instance.session?.clearCallbacks()
+      instance.session = null
+    }
+
+    fun personalSign(activity: Activity, params: ReadableMap, callback: Callback) {
+      try {
+        instance.session?.addCallback(instance)
+        instance.session?.performMethodCall(Session.MethodCall.Custom(2, "personal_sign", listOf(params.getString("address"), params.getString("message")))) {
+          if (it.result != null && it.result is String) {
+            callback.invoke(Arguments.createMap().apply {
+              putString("type", "success")
+              putString("message", it.result as String)
+            })
+          } else {
+            callback.invoke(Arguments.createMap().apply {
+              putString("type", "error")
+              putString("message", it.error?.message ?: "ERROR_SIGN")
+            })
+          }
+        }
+        val intent = Intent(Intent.ACTION_VIEW)
+        val toWCUri = instance.toWCUri();
+        intent.data = Uri.parse(
+          if (params.getString("wallet") != null) instance.getConnectionUrl(
+            params.getString("wallet")!!, toWCUri
+          ) else toWCUri
+        )
+        activity.startActivity(intent)
+      } catch (e: Throwable) {
+        println("AppWalletConnect.personalSign.error" + e.message)
+        if (e.message?.contains("No Activity found to handle") == true) {
+          callback.invoke(Arguments.createMap().also {
+            it.putString("type", "error")
+            it.putString("error", "NO_WALLETS")
+          })
+        } else {
+          callback.invoke(Arguments.createMap().also {
+            it.putString("type", "success")
+            it.putArray("addresses", Arguments.createArray())
+          })
+        }
+      }
+    }
+
     @JvmStatic
     fun connect(activity: Activity, params: ReadableMap, callback: Callback) {
       instance.resolvePromise = WeakReference(callback)
-      Handler(Looper.getMainLooper()).post {
-        try {
-          instance.resetSession(params)
-          instance.session?.addCallback(instance)
-          val intent = Intent(Intent.ACTION_VIEW)
-          val toWCUri = instance.toWCUri();
-          intent.data = Uri.parse(
-            if (params.getString("wallet") != null) instance.getConnectionUrl(
-              params.getString("wallet")!!, toWCUri
-            ) else toWCUri
-          )
-          activity.startActivity(intent)
-        } catch (e: Throwable) {
-          println("🥸 error " + e.message)
-          if (e.message?.contains("No Activity found to handle") == true) {
-            callback.invoke(Arguments.createMap().also {
-              it.putString("type", "error")
-              it.putString("error", "NO_WALLETS")
-            })
-          } else {
-            callback.invoke(Arguments.createMap().also {
-              it.putString("type", "success")
-              it.putArray("addresses", Arguments.createArray())
-            })
-          }
+      try {
+        instance.resetSession(params)
+        instance.session?.addCallback(instance)
+        val intent = Intent(Intent.ACTION_VIEW)
+        val toWCUri = instance.toWCUri();
+        intent.data = Uri.parse(
+          if (params.getString("wallet") != null) instance.getConnectionUrl(
+            params.getString("wallet")!!, toWCUri
+          ) else toWCUri
+        )
+        activity.startActivity(intent)
+      } catch (e: Throwable) {
+        println("AppWalletConnect.connect.error " + e.message)
+        if (e.message?.contains("No Activity found to handle") == true) {
+          callback.invoke(Arguments.createMap().also {
+            it.putString("type", "error")
+            it.putString("error", "NO_WALLETS")
+          })
+        } else {
+          callback.invoke(Arguments.createMap().also {
+            it.putString("type", "success")
+            it.putArray("addresses", Arguments.createArray())
+          })
         }
       }
     }

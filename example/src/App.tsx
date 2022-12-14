@@ -27,8 +27,8 @@ export default function App() {
   }, []);
 
   const connect = async (wallet?: WalletModel) => {
-    console.log(wallet);
-    const wallets = await walletConnect({
+    console.log('connect', wallet);
+    const wallets = await walletConnect.connect({
       bridge: 'https://bridge.walletconnect.org',
       name: 'Moni',
       description: 'Moni',
@@ -36,7 +36,15 @@ export default function App() {
       url: 'https://getmoni.io',
       wallet: wallet?.universalLink,
     });
-    console.log('[App.]', wallets);
+    console.log('[App.1]', wallets);
+    if (wallets.type === 'success') {
+      const t = await walletConnect.personalSign({
+        address: wallets.addresses[0]!,
+        message: 'smth',
+        bridge: 'https://bridge.walletconnect.org',
+      });
+      console.log('[App.2]', t);
+    }
   };
 
   return (
