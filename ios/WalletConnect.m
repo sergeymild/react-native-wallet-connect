@@ -4,6 +4,9 @@
 
 RCT_EXTERN_METHOD(connect:(NSDictionary*)params
                   callback:(RCTResponseSenderBlock)callback)
+RCT_EXTERN_METHOD(personalSign:(NSDictionary*)params
+                  callback:(RCTResponseSenderBlock)callback)
+RCT_EXTERN_METHOD(close)
 
 + (BOOL)requiresMainQueueSetup
 {

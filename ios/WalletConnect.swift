@@ -16,4 +16,23 @@ class WalletConnect: NSObject {
             url: params.value(forKey: "url") as! String
         )
     }
+    
+    @objc
+    func disconnect() {
+        AppWalletConnect.instance.disconnect()
+    }
+    
+    @objc
+    func personalSign(
+        _ params: NSDictionary,
+        callback: @escaping RCTResponseSenderBlock
+    ) {
+        AppWalletConnect.instance.personalSign(
+            message: params["message"] as! String,
+            account: params["address"] as! String,
+            bridge: params["bridge"] as! String,
+            wallet: params["wallet"] as! String,
+            callback: callback
+        )
+    }
 }

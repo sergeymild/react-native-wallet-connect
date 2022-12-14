@@ -16,9 +16,13 @@ protocol WalletConnectDelegate {
     func didDisconnect()
 }
 
+struct SignResponse: Decodable {
+    let result: String
+}
+
 class AppWalletConnect {
-    var client: Client!
-    var session: Session!
+    var client: Client?
+    var session: Session?
     let sessionKey = "sessionKey"
     var callback: RCTResponseSenderBlock?
     
@@ -30,6 +34,54 @@ class AppWalletConnect {
         var s = scheme.hasSuffix("/") ? scheme : "\(scheme)/"
         s += "wc?uri="
         return "\(s)\(_end2)"
+    }
+    
+    func personalSign(
+        message: String,
+        account: String,
+        bridge: String,
+        wallet: String,
+        callback: @escaping RCTResponseSenderBlock
+    ) {
+        do {
+            guard let session = session else {
+                callback([["type": "error", "message": "SESSION_IS_NOT_FOUND"]])
+                return
+            }
+            guard let client = AppWalletConnect.instance.client else {
+                callback([["type": "error", "message": "CLIENT_IS_NOT_CONNECTED"]])
+                return
+            }
+            try client.personal_sign(
+                url: session.url,
+                message: message,
+                account: account
+            ) { response in
+                let r = try? response.result(as: String.self)
+                callback([["type": r != nil ? "success" : "error", "message": r ?? "ERROR_SIGN"]])
+            }
+
+            let urlStr = getConnectionUrl(scheme: wallet, wcUrl: session.url)
+            let url = URL(string: urlStr)!
+            if !UIApplication.shared.canOpenURL(url) {
+                callback([["type": "error", "error": "NO_WALLETS"]])
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(1000)) {
+                debugPrint("🥸 Launching", url)
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        } catch {
+            callback([["type": "ERROR", "message": error.localizedDescription]])
+            debugPrint("====", error)
+        }
+    }
+    
+    func disconnect() {
+        guard let session = session else { return }
+        try? client?.disconnect(from: session)
+        self.session = nil
+        self.client = nil
     }
 
     func connect(
@@ -55,15 +107,16 @@ class AppWalletConnect {
         )
         let dAppInfo = Session.DAppInfo(peerId: UUID().uuidString, peerMeta: clientMeta)
         if (client != nil) {
-            let sessions = client.openSessions()
-            debugPrint("🥸 disconnect", sessions)
-            for s in sessions {
-                try? client.disconnect(from: s)
+            if let sessions = client?.openSessions() {
+                debugPrint("🥸 disconnect", sessions)
+                for s in sessions {
+                    try? client?.disconnect(from: s)
+                }
             }
         }
         client = Client(delegate: self, dAppInfo: dAppInfo)
         
-        try! client.connect(to: wcUrl)
+        try! client!.connect(to: wcUrl)
         let urlStr = getConnectionUrl(scheme: wallet, wcUrl: wcUrl)
         let url = URL(string: urlStr)!
         debugPrint("🥸 url: \(url.absoluteString)")
@@ -84,7 +137,7 @@ class AppWalletConnect {
         if let oldSessionObject = UserDefaults.standard.object(forKey: sessionKey) as? Data,
            let session = try? JSONDecoder().decode(Session.self, from: oldSessionObject) {
             client = Client(delegate: self, dAppInfo: session.dAppInfo)
-            try? client.reconnect(to: session)
+            try? client!.reconnect(to: session)
         }
     }
     
@@ -134,6 +187,7 @@ extension AppWalletConnect: ClientDelegate {
     }
     
     func client(_ client: Client, didUpdate session: Session) {
+        self.session = session
         debugPrint("🥸 --- didUpdate", session.walletInfo?.accounts)
     }
 }

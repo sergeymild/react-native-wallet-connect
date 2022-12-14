@@ -32,17 +32,31 @@ interface ParamsModel {
   readonly url: string;
 }
 
-function formatIOSMobile(uri: string, universalLink: string) {
-  const encodedUri = encodeURIComponent(uri);
-  return `${universalLink}/wc?uri=${encodedUri}`;
+interface SignParamsModel {
+  readonly bridge: string;
+  readonly message: string;
+  readonly address: string;
+  readonly wallet: string;
 }
 
-export function walletConnect(
-  params: ParamsModel
-): Promise<
-  { type: 'error'; error: string } | { type: 'success'; addresses: string[] }
-> {
-  return new Promise((resolve) => {
-    WalletConnect.connect(params, resolve);
-  });
-}
+export const walletConnect = {
+  signMessage(params: SignParamsModel) {
+    return new Promise((resolve) => {
+      WalletConnect.signMessage(params, resolve);
+    });
+  },
+
+  connect(
+    params: ParamsModel
+  ): Promise<
+    { type: 'error'; error: string } | { type: 'success'; addresses: string[] }
+  > {
+    return new Promise((resolve) => {
+      WalletConnect.connect(params, resolve);
+    });
+  },
+
+  close() {
+    WalletConnect.close();
+  },
+};
