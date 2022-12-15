@@ -44,6 +44,7 @@ class AppWalletConnect {
         callback: @escaping RCTResponseSenderBlock
     ) {
         do {
+            debugPrint("[personalSign] message: \(message), account: \(account), bridge: \(bridge), wallet: \(wallet)")
             guard let session = session else {
                 callback([["type": "error", "message": "SESSION_IS_NOT_FOUND"]])
                 return

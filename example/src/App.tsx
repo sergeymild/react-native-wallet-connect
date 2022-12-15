@@ -30,10 +30,10 @@ export default function App() {
     console.log('connect', wallet);
     const wallets = await walletConnect.connect({
       bridge: 'https://bridge.walletconnect.org',
-      name: 'Moni',
-      description: 'Moni',
-      icon: 'https://storage.googleapis.com/moni-makers/New.png',
-      url: 'https://getmoni.io',
+      name: 'NFSee',
+      description: 'Connect your wallet',
+      icon: 'https://uploads-ssl.webflow.com/6321ad9f31f654a13eb13aa8/6329b49598dd316f58fda057_Favicon.png',
+      url: 'https://www.nfsee.io',
       wallet: wallet?.universalLink,
     });
     console.log('[App.1]', wallets);
@@ -42,6 +42,7 @@ export default function App() {
         address: wallets.addresses[0]!,
         message: 'smth',
         bridge: 'https://bridge.walletconnect.org',
+        wallet: wallet?.universalLink,
       });
       console.log('[App.2]', t);
     }
