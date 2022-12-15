@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Dimensions, ListRenderItemInfo, StyleSheet, View } from 'react-native';
+import {
+  Dimensions,
+  ListRenderItemInfo,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -72,8 +78,6 @@ export const ChooseWalletTypeModal = forwardRef<
   let l = Math.min(5, Math.round(width / 72));
   width = l * 72;
 
-  console.log('[AddPortfolioChooseWalletTypeBottomSheet.]', l, width / 72);
-
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -87,6 +91,12 @@ export const ChooseWalletTypeModal = forwardRef<
       onDismiss={() => setPresent(false)}
     >
       <View style={styles.container}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          onPress={() => {
+            sheetRef.current?.dismiss();
+          }}
+        />
         <View
           style={{
             width: width + 16,
