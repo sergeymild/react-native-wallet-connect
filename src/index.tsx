@@ -40,7 +40,11 @@ interface SignParamsModel {
 }
 
 export const walletConnect = {
-  personalSign(params: SignParamsModel) {
+  personalSign(
+    params: SignParamsModel
+  ): Promise<
+    { type: 'error'; error: string } | { type: 'success'; message: string }
+  > {
     return new Promise((resolve) => {
       WalletConnect.personalSign(params, resolve);
     });
